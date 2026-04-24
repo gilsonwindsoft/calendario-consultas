@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const Database = require('better-sqlite3');
 const cors = require('cors');
@@ -11,8 +12,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Dados persistidos no volume Docker em /data
-const DB_PATH = path.join('/data', 'consultas.db');
+// Dados persistidos no volume Docker em /data (ou DATA_DIR para dev local)
+const DATA_DIR = process.env.DATA_DIR || '/data';
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const DB_PATH = path.join(DATA_DIR, 'consultas.db');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 

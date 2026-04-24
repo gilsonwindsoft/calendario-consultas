@@ -412,8 +412,32 @@
 <script>
 const { useState, useEffect, useCallback, useRef } = React;
 
+// ── Constantes ───────────────────────────────────────────────────
+const VALOR_CONSULTA = 220.00;
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+// ── Helpers ──────────────────────────────────────────────────────
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function fmt(valor) {
+  return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function fmtDateBR(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function monthKey(dateStr) {
+  return dateStr.slice(0, 7); // "YYYY-MM"
+}
+
 // ── API helpers ──────────────────────────────────────────────────
-// Troque pela URL do seu backend no Railway após o deploy:
 const API_BASE = '';
 
 async function apiFetch(path, options = {}) {

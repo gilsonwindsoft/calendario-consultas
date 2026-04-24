@@ -6,7 +6,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     volumes:
-      - consultas_data:/data
+      - "${DATA_DIR:-./data}:/data"
     environment:
       - PORT=3000
       - NODE_ENV=production
