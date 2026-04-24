@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>Minhas Consultas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --teal: #39d353;
+    --consult-color: #388bfd;
+    --pay-color: #3fb950;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+  #root { width: 100%; max-width: 480px; margin: 0 auto; padding: 0 0 100px; overflow-x: hidden; }
+  @media (max-width: 480px) {
+    #root { max-width: 100vw; }
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(160deg, #1a2332 0%, #0d1117 100%);
+    padding: 16px 16px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    width: 100%;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+  .header h1 span { color: var(--accent); font-style: italic; }
+
+  /* RESUMO CARDS */
+  .resumo {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+    padding: 12px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .card .valor {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .card.verde .valor { color: var(--pay-color); }
+  .card.azul .valor { color: var(--consult-color); }
+  .card.vermelho .valor { color: var(--red); }
+  .card.zerado .valor { color: var(--green); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tab.active-consult { background: #1c2f4a; border-color: var(--consult-color); color: var(--accent); }
+  .tab.active-pay { background: #162720; border-color: var(--pay-color); color: var(--pay-color); }
+  .tab.active-hist { background: var(--surface2); border-color: var(--border); color: var(--text); }
+
+  /* CALENDAR */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 10px;
+  }
+  .cal-nav button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 36px; height: 36px;
+    color: var(--text);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-nav .month-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    text-transform: capitalize;
+  }
+  .cal-grid {
+    padding: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 2px;
+    width: 100%;
+  }
+  .cal-weekday {
+    text-align: center;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    padding: 4px 0;
+    text-transform: uppercase;
+  }
+  .cal-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2px;
+    width: 100%;
+    overflow: hidden;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+    transition: all 0.1s;
+    background: transparent;
+    color: var(--text);
+    gap: 1px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .cal-day:active { transform: scale(0.93); }
+  .cal-day.empty { cursor: default; }
+  .cal-day.today { border-color: var(--accent); color: var(--accent); }
+  .cal-day.has-consulta { background: #1c2f4a; border-color: var(--consult-color); }
+  .cal-day.has-pagamento { background: #162720; border-color: var(--pay-color); }
+  .cal-day.has-ambos { background: linear-gradient(135deg, #1c2f4a 50%, #162720 50%); border-color: var(--amber); }
+  .cal-day .dots {
+    display: flex; gap: 2px;
+  }
+  .dot { width: 4px; height: 4px; border-radius: 50%; }
+  .dot-c { background: var(--consult-color); }
+  .dot-p { background: var(--pay-color); }
+
+  /* FORM */
+  .form-section {
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .form-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-row { display: flex; flex-direction: column; gap: 6px; }
+  .form-row label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.3px; }
+  .form-row input, .form-row textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  .form-row input:focus, .form-row textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .form-row textarea { resize: none; height: 70px; }
+  .btn-primary {
+    background: var(--consult-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-pay { background: var(--pay-color); }
+  .hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: -4px; }
+
+  /* HISTÓRICO */
+  .hist-section { padding: 0 12px; }
+  .hist-month {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--muted);
+    text-transform: capitalize;
+    margin: 16px 0 8px;
+  }
+  .hist-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .hist-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .hist-icon.c { background: #1c2f4a; }
+  .hist-icon.p { background: #162720; }
+  .hist-info { flex: 1; min-width: 0; }
+  .hist-tipo { font-size: 12px; font-weight: 600; }
+  .hist-tipo.c { color: var(--accent); }
+  .hist-tipo.p { color: var(--pay-color); }
+  .hist-data { font-size: 13px; color: var(--muted); }
+  .hist-obs { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-valor { font-family: 'DM Serif Display', serif; font-size: 16px; }
+  .hist-valor.c { color: var(--red); }
+  .hist-valor.p { color: var(--pay-color); }
+  .btn-del {
+    background: none; border: none;
+    color: var(--muted); font-size: 15px;
+    cursor: pointer; padding: 4px;
+    line-height: 1;
+  }
+  .btn-del:active { color: var(--red); }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .empty span { font-size: 36px; display: block; margin-bottom: 10px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%; transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 999;
+    animation: fadeup 0.2s ease;
+    white-space: nowrap;
+  }
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex; align-items: flex-end;
+    animation: fadein 0.15s;
+  }
+  @keyframes fadein { from { opacity:0 } to { opacity:1 } }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    animation: slideup 0.2s ease;
+  }
+  @keyframes slideup {
+    from { transform: translateY(60px); opacity: 0 }
+    to { transform: translateY(0); opacity: 1 }
+  }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .modal-date { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .modal-info-list { display: flex; flex-direction: column; gap: 6px; }
+  .modal-info-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border-radius: 8px; padding: 10px 12px;
+  }
+  .modal-info-item .mi-label { font-size: 12px; color: var(--muted); flex: 1; }
+  .modal-info-item .mi-val { font-weight: 600; font-size: 14px; }
+  .mi-val.c { color: var(--accent); }
+  .mi-val.p { color: var(--pay-color); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    max-width: 480px; margin: 0 auto;
+  }
+  /* trick para centralizar o bottom-nav no max-width */
+  @media (min-width: 480px) {
+    .bottom-nav { left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 0 14px;
+    background: none; border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    gap: 4px;
+    transition: color 0.15s;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-btn.active-consult { color: var(--accent); }
+  .nav-btn.active-pay { color: var(--pay-color); }
+  .nav-btn.active-hist { color: var(--text); }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 12px 16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ── API helpers ──────────────────────────────────────────────────
+// Troque pela URL do seu backend no Railway após o deploy:
+const API_BASE = '';
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Erro na requisição');
+  }
+  return res.json();
+}
+
+async function dbGetAll(store) {
+  return apiFetch(`/api/${store}`);
+}
+
+async function dbAdd(store, data) {
+  const result = await apiFetch(`/api/${store}`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return result.id;
+}
+
+async function dbDelete(store, id) {
+  await apiFetch(`/api/${store}/${id}`, { method: 'DELETE' });
+}
+
+// ── App ──────────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState('calendar'); // calendar | pagamento | historico
+  const [consultas, setConsultas] = useState([]);
+  const [pagamentos, setPagamentos] = useState([]);
+  const [calDate, setCalDate] = useState(() => { const d=new Date(); return {y:d.getFullYear(),m:d.getMonth()}; });
+  const [toast, setToast] = useState(null);
+  const [modal, setModal] = useState(null); // { date, consulta?, pagamento? }
+  const [payForm, setPayForm] = useState({ data: today(), valor: '', obs: '' });
+  const [consultaForm, setConsultaForm] = useState({ data: today(), obs: '' });
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+  const toastTimer = useRef(null);
+
+  // Load data + auto-refresh a cada 30s para sincronizar com a esposa
+  async function loadData() {
+    try {
+      const [c, p] = await Promise.all([dbGetAll('consultas'), dbGetAll('pagamentos')]);
+      setConsultas(c);
+      setPagamentos(p);
+      setApiError(false);
+    } catch(e) {
+      setApiError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2200);
+  }, []);
+
+  // Resumo
+  const totalConsultas = consultas.reduce((s,c) => s + (c.valor || VALOR_CONSULTA), 0);
+  const totalPago = pagamentos.reduce((s,p) => s + p.valor, 0);
+  const saldo = totalConsultas - totalPago;
+
+  // Calendar helpers
+  const consultasDates = new Set(consultas.map(c => c.data));
+  const pagamentosDates = new Set(pagamentos.map(p => p.data));
+
+  function getDaysInMonth(y, m) {
+    return new Date(y, m+1, 0).getDate();
+  }
+  function getFirstDayOfMonth(y, m) {
+    return new Date(y, m, 1).getDay();
+  }
+
+  // Add consulta
+  async function addConsulta() {
+    const { data, obs } = consultaForm;
+    if (!data) return showToast('Selecione uma data');
+    if (consultasDates.has(data)) return showToast('Consulta já registrada nesta data');
+    const obj = { data, valor: VALOR_CONSULTA, obs, created_at: new Date().toISOString() };
+    const id = await dbAdd('consultas', obj);
+    setConsultas(prev => [...prev, { ...obj, id }]);
+    showToast('✅ Consulta registrada!');
+    setConsultaForm({ data: today(), obs: '' });
+  }
+
+  // Add pagamento
+  async function addPagamento() {
+    const { data, valor, obs } = payForm;
+    if (!data) return showToast('Selecione uma data');
+    const v = parseFloat(valor.replace(',', '.'));
+    if (!v || v <= 0) return showToast('Informe um valor válido');
+    const obj = { data, valor: v, obs, created_at: new Date().toISOString() };
+    const id = await dbAdd('pagamentos', obj);
+    setPagamentos(prev => [...prev, { ...obj, id }]);
+    showToast('💰 Pagamento registrado!');
+    setPayForm({ data: today(), valor: '', obs: '' });
+  }
+
+  // Delete
+  async function delConsulta(id) {
+    await dbDelete('consultas', id);
+    setConsultas(prev => prev.filter(c => c.id !== id));
+    setModal(null);
+    showToast('Consulta removida');
+  }
+  async function delPagamento(id) {
+    await dbDelete('pagamentos', id);
+    setPagamentos(prev => prev.filter(p => p.id !== id));
+    setModal(null);
+    showToast('Pagamento removido');
+  }
+
+  // Calendar day click
+  function onDayClick(dateStr) {
+    const c = consultas.filter(x => x.data === dateStr);
+    const p = pagamentos.filter(x => x.data === dateStr);
+    setModal({ date: dateStr, consultas: c, pagamentos: p });
+  }
+
+  // Build calendar
+  function renderCalendar() {
+    const { y, m } = calDate;
+    const days = getDaysInMonth(y, m);
+    const first = getFirstDayOfMonth(y, m);
+    const todayStr = today();
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push(null);
+    for (let d = 1; d <= days; d++) {
+      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      cells.push({ d, dateStr });
+    }
+    return (
+      React.createElement('div', { style: { padding: '0 10px', boxSizing: 'border-box', width: '100%', overflow: 'hidden' } },
+      React.createElement('div', { className: 'cal-grid' },
+        React.createElement('div', { className: 'cal-weekdays' },
+          DIAS_SEMANA.map(dw => React.createElement('div', { key: dw, className: 'cal-weekday' }, dw))
+        ),
+        React.createElement('div', { className: 'cal-days' },
+          cells.map((cell, i) => {
+            if (!cell) return React.createElement('div', { key: `e${i}`, className: 'cal-day empty' });
+            const { d, dateStr } = cell;
+            const hasC = consultasDates.has(dateStr);
+            const hasP = pagamentosDates.has(dateStr);
+            let cls = 'cal-day';
+            if (dateStr === todayStr) cls += ' today';
+            if (hasC && hasP) cls += ' has-ambos';
+            else if (hasC) cls += ' has-consulta';
+            else if (hasP) cls += ' has-pagamento';
+            return React.createElement('div', {
+              key: dateStr, className: cls,
+              onClick: () => onDayClick(dateStr)
+            },
+              d,
+              (hasC || hasP) && React.createElement('div', { className: 'dots' },
+                hasC && React.createElement('div', { className: 'dot dot-c' }),
+                hasP && React.createElement('div', { className: 'dot dot-p' })
+              )
+            );
+          })
+        )
+      )
+      )
+    );
+  }
+
+  // Histórico agrupado por mês
+  function renderHistorico() {
+    const all = [
+      ...consultas.map(c => ({ ...c, tipo: 'consulta' })),
+      ...pagamentos.map(p => ({ ...p, tipo: 'pagamento' }))
+    ].sort((a, b) => b.data.localeCompare(a.data));
+
+    if (!all.length) return React.createElement('div', { className: 'empty' },
+      React.createElement('span', null, '📋'),
+      'Nenhum registro ainda'
+    );
+
+    const groups = {};
+    all.forEach(item => {
+      const k = monthKey(item.data);
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(item);
+    });
+
+    return React.createElement('div', { className: 'hist-section' },
+      Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0])).map(([mk, items]) => {
+        const [y, m] = mk.split('-');
+        return React.createElement('div', { key: mk },
+          React.createElement('div', { className: 'hist-month' }, `${MESES[parseInt(m)-1]} ${y}`),
+          items.map(item => {
+            const isC = item.tipo === 'consulta';
+            return React.createElement('div', { key: `${item.tipo}-${item.id}`, className: 'hist-item' },
+              React.createElement('div', { className: `hist-icon ${isC?'c':'p'}` }, isC ? '🩺' : '💳'),
+              React.createElement('div', { className: 'hist-info' },
+                React.createElement('div', { className: `hist-tipo ${isC?'c':'p'}` }, isC ? 'Consulta' : 'Pagamento'),
+                React.createElement('div', { className: 'hist-data' }, fmtDateBR(item.data)),
+                item.obs ? React.createElement('div', { className: 'hist-obs' }, item.obs) : null
+              ),
+              React.createElement('div', { className: `hist-valor ${isC?'c':'p'}` },
+                (isC ? '-' : '+') + fmt(item.valor)
+              ),
+              React.createElement('button', {
+                className: 'btn-del',
+                onClick: () => isC ? delConsulta(item.id) : delPagamento(item.id)
+              }, '×')
+            );
+          })
+        );
+      })
+    );
+  }
+
+  return React.createElement(React.Fragment, null,
+    // Header
+    React.createElement('div', { className: 'header' },
+      React.createElement('h1', null, '🩺 Minhas ', React.createElement('span', null, 'Consultas'))
+    ),
+
+    // Loading / Error banner
+    loading && React.createElement('div', { style: {
+      textAlign: 'center', padding: '40px 20px', color: 'var(--muted)', fontSize: 14
+    }}, '⏳ Conectando...'),
+
+    apiError && React.createElement('div', { style: {
+      margin: '12px', background: '#2d1a1a', border: '1px solid var(--red)',
+      borderRadius: 8, padding: '12px 16px', fontSize: 13, color: 'var(--red)',
+      display: 'flex', alignItems: 'center', gap: 8
+    }},
+      '⚠️ Sem conexão com o servidor. Verifique a URL do backend.'
+    ),
+
+    // Resumo
+    !loading && React.createElement('div', { className: 'resumo' },
+      React.createElement('div', { className: 'card azul' },
+        React.createElement('div', { className: 'label' }, 'Consultas'),
+        React.createElement('div', { className: 'valor' }, fmt(totalConsultas))
+      ),
+      React.createElement('div', { className: 'card verde' },
+        React.createElement('div', { className: 'label' }, 'Pago'),
+        React.createElement('div', { className: 'valor' }, fmt(totalPago))
+      ),
+      React.createElement('div', { className: saldo <= 0 ? 'card zerado' : 'card vermelho' },
+        React.createElement('div', { className: 'label' }, 'Saldo'),
+        React.createElement('div', { className: 'valor' }, fmt(Math.abs(saldo)))
+      )
+    ),
+
+    // Tabs
+    !loading && React.createElement('div', { className: 'tabs' },
+      React.createElement('button', {
+        className: `tab ${tab==='calendar'?'active-consult':''}`,
+        onClick: () => setTab('calendar')
+      }, '📅 Calendário'),
+      React.createElement('button', {
+        className: `tab ${tab==='pagamento'?'active-pay':''}`,
+        onClick: () => setTab('pagamento')
+      }, '💰 Pagar'),
+      React.createElement('button', {
+        className: `tab ${tab==='historico'?'active-hist':''}`,
+        onClick: () => setTab('historico')
+      }, '📋 Histórico')
+    ),
+
+    // Content
+    tab === 'calendar' && React.createElement(React.Fragment, null,
+      // Cal nav
+      React.createElement('div', { className: 'cal-nav' },
+        React.createElement('button', { onClick: () => setCalDate(({y,m}) => m===0?{y:y-1,m:11}:{y,m:m-1}) }, '‹'),
+        React.createElement('div', { className: 'month-label' }, `${MESES[calDate.m]} ${calDate.y}`),
+        React.createElement('button', { onClick: () => setCalDate(({y,m}) => m===11?{y:y+1,m:0}:{y,m:m+1}) }, '›')
+      ),
+      renderCalendar(),
+      React.createElement('div', { className: 'divider' }),
+      // Consulta form
+      React.createElement('div', { className: 'form-section' },
+        React.createElement('div', { className: 'form-title' }, '➕ Registrar consulta'),
+        React.createElement('div', { className: 'form-row' },
+          React.createElement('label', null, 'Data da consulta'),
+          React.createElement('input', {
+            type: 'date', value: consultaForm.data,
+            onChange: e => setConsultaForm(f => ({...f, data: e.target.value}))
+          })
+        ),
+        React.createElement('div', { className: 'form-row' },
+          React.createElement('label', null, 'Observação (opcional)'),
+          React.createElement('textarea', {
+            placeholder: 'Ex: Dr. Silva, retorno...',
+            value: consultaForm.obs,
+            onChange: e => setConsultaForm(f => ({...f, obs: e.target.value}))
+          })
+        ),
+        React.createElement('button', { className: 'btn-primary', onClick: addConsulta }, `Registrar Consulta — ${fmt(VALOR_CONSULTA)}`),
+        React.createElement('div', { className: 'hint' }, 'Toque em um dia do calendário para ver detalhes')
+      )
+    ),
+
+    tab === 'pagamento' && React.createElement('div', { className: 'form-section' },
+      React.createElement('div', { className: 'form-title' }, '💰 Registrar pagamento'),
+      saldo > 0
+        ? React.createElement('div', { style: { background: '#1a1f0d', border: '1px solid var(--amber)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#d29922' } },
+            `⚠️ Você ainda deve ${fmt(saldo)}`
+          )
+        : React.createElement('div', { style: { background: '#0d1f12', border: '1px solid var(--green)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'var(--green)' } },
+            '✅ Tudo em dia!'
+          ),
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('label', null, 'Data do pagamento'),
+        React.createElement('input', {
+          type: 'date', value: payForm.data,
+          onChange: e => setPayForm(f => ({...f, data: e.target.value}))
+        })
+      ),
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('label', null, 'Valor pago (R$)'),
+        React.createElement('input', {
+          type: 'number', inputMode: 'decimal', placeholder: '0,00',
+          value: payForm.valor,
+          onChange: e => setPayForm(f => ({...f, valor: e.target.value}))
+        })
+      ),
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('label', null, 'Observação (opcional)'),
+        React.createElement('textarea', {
+          placeholder: 'Ex: Pix, parcial...',
+          value: payForm.obs,
+          onChange: e => setPayForm(f => ({...f, obs: e.target.value}))
+        })
+      ),
+      React.createElement('button', { className: 'btn-primary btn-pay', onClick: addPagamento }, 'Registrar Pagamento')
+    ),
+
+    tab === 'historico' && renderHistorico(),
+
+    // Modal dia
+    modal && React.createElement('div', { className: 'modal-overlay', onClick: e => e.target===e.currentTarget&&setModal(null) },
+      React.createElement('div', { className: 'modal' },
+        React.createElement('div', { className: 'modal-title' }, fmtDateBR(modal.date)),
+        modal.consultas.length === 0 && modal.pagamentos.length === 0
+          ? React.createElement('div', { style: { color: 'var(--muted)', fontSize: 14, margin: '10px 0' } }, 'Nenhum registro neste dia.')
+          : React.createElement('div', { className: 'modal-info-list' },
+              ...modal.consultas.map(c =>
+                React.createElement('div', { key: `mc${c.id}`, className: 'modal-info-item' },
+                  React.createElement('span', null, '🩺'),
+                  React.createElement('span', { className: 'mi-label' }, c.obs || 'Consulta'),
+                  React.createElement('span', { className: 'mi-val c' }, fmt(c.valor)),
+                  React.createElement('button', { className: 'btn-del', onClick: () => delConsulta(c.id) }, '×')
+                )
+              ),
+              ...modal.pagamentos.map(p =>
+                React.createElement('div', { key: `mp${p.id}`, className: 'modal-info-item' },
+                  React.createElement('span', null, '💳'),
+                  React.createElement('span', { className: 'mi-label' }, p.obs || 'Pagamento'),
+                  React.createElement('span', { className: 'mi-val p' }, fmt(p.valor)),
+                  React.createElement('button', { className: 'btn-del', onClick: () => delPagamento(p.id) }, '×')
+                )
+              )
+            ),
+        React.createElement('div', { className: 'modal-actions' },
+          React.createElement('button', { className: 'btn-outline', onClick: () => setModal(null) }, 'Fechar')
+        )
+      )
+    ),
+
+    // Toast
+    toast && React.createElement('div', { className: 'toast' }, toast)
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
